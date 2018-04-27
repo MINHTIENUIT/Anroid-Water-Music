@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <dimen name="text_size_a">15dp</dimen>
-    <dimen name="text_size_b">25dp</dimen>
-    <dimen name="fab_margin">16dp</dimen>
-    <dimen name="magin_bar">7dp</dimen>
-</resources>

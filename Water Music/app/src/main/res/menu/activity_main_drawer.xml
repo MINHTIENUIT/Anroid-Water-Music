@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+
+
+    <item android:title="Setting">
+        <menu>
+            <item
+                android:id="@+id/nav_turn_on"
+                android:icon="@drawable/ic_power"
+                android:title="Turn on" />
+            <item
+                android:id="@+id/nav_disconnect"
+                android:icon="@drawable/ic_disconnect"
+                android:title="Disconnect" />
+        </menu>
+    </item>
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_devices"
+            android:icon="@drawable/ic_bluetooth"
+            android:title="Devices" />
+        <item
+            android:id="@+id/nav_controller"
+            android:icon="@drawable/ic_audio"
+            android:title="Controller" />
+        <item
+            android:id="@+id/nav_manage"
+            android:icon="@drawable/ic_menu_manage"
+            android:title="Tools" />
+    </group>
+
+</menu>
