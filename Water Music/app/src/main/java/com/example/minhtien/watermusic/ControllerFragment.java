@@ -18,9 +18,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import com.example.minhtien.watermusic.BroadcastReceiver.BroadcastEnable;
 import com.example.minhtien.watermusic.Connection.ManagerConnection;
+import com.example.minhtien.watermusic.Model.MessageWM;
+import com.example.minhtien.watermusic.Model.Song;
+import com.google.gson.Gson;
+
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -109,27 +113,12 @@ public class ControllerFragment extends Fragment {
                 if (msg.what == 0){
                     String readMessage = null;
                     try{
-                        readMessage = new String((byte[]) msg.obj,"UTF-8");
-                        StringBuffer buffer = new StringBuffer();
-                        buffer.append(Character.MIN_VALUE);
-                        readMessage = readMessage.replaceAll("[\uFEFF-\uFFFF]", "");
-                        Log.d("test", "handleMessage: "+readMessage);
+                        readMessage = new String((byte[]) msg.obj,"UTF-8").trim();
                     }catch (UnsupportedEncodingException e){
                         e.printStackTrace();
                     }
-                    String[] strings = readMessage.split(":");
+                    getResponse(readMessage);
 
-                    if (strings.length != 0){
-
-                        switch (strings[0]){
-                            case "Name":
-                                tvName.setText(strings[1]);
-                                break;
-                            case "SP":
-                                spectrumFragment.setSpectrum(arraySpectrum(strings));
-                                break;
-                        }
-                    }
                 }
             }
         };
@@ -183,6 +172,7 @@ public class ControllerFragment extends Fragment {
         btnPause = (ImageButton) view.findViewById(R.id.btn_pause);
         btnPrev = (ImageButton) view.findViewById(R.id.btn_prev);
         tvName = (TextView) view.findViewById(R.id.tv_name_song);
+        tvName.setSelected(true);
 
         fragmentManager = getActivity().getSupportFragmentManager();
         fragmentTransaction = fragmentManager.beginTransaction();
@@ -196,21 +186,21 @@ public class ControllerFragment extends Fragment {
         btnPrev.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ManagerConnection.getInstance(device).send("prev");
+                ManagerConnection.getInstance(device).send("C:res");
             }
         });
 
         btnPause.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ManagerConnection.getInstance(device).send("pause");
+                ManagerConnection.getInstance(device).send("C:pse");
             }
         });
 
         btnNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ManagerConnection.getInstance(device).send("next");
+                ManagerConnection.getInstance(device).send("C:nxt");
             }
         });
     }
@@ -238,5 +228,37 @@ public class ControllerFragment extends Fragment {
             }
         }
         return integers;
+    }
+
+    void getResponse(String message){
+        MessageWM messageWM = null;
+        try {
+            messageWM = new Gson().fromJson(message,MessageWM.class);
+        }catch (Exception e){
+            e.printStackTrace();
+            Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
+        }
+
+        if (messageWM == null){
+            return;
+        }
+
+        switch (messageWM.getType()){
+            case "Name":
+                try{
+                    Song song = new Gson().fromJson(messageWM.getMessage(),Song.class);
+                    tvName.setText(song.getName().replace(".wav",""));
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+                break;
+            case "Spectrum":
+
+                default:
+                    Log.d("error", "getResponse: " + messageWM.getMessage());
+                    Toast.makeText(getContext(), messageWM.getMessage(), Toast.LENGTH_LONG).show();
+                    break;
+        }
+
     }
 }

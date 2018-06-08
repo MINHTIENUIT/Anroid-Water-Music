@@ -17,10 +17,14 @@
         android:id="@+id/tv_name_song"
         android:textAlignment="center"
         android:textSize="@dimen/text_size_b"
-        android:layout_width="match_parent"
-        android:textColor="@color/colorWhite"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
         android:layout_above="@+id/control"
-        android:layout_height="wrap_content" />
+        android:textColor="@color/colorWhite"
+        android:singleLine="true"
+        android:ellipsize="marquee"
+        android:marqueeRepeatLimit="marquee_forever"
+        android:textAppearance="?android:textAppearanceLarge"/>
     <RelativeLayout
         android:id="@+id/control"
         android:layout_width="match_parent"
