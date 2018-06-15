@@ -10,8 +10,8 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,6 +23,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.minhtien.watermusic.Connection.ManagerConnection;
+import com.example.minhtien.watermusic.CustomAdpater.SongAdapter;
 import com.example.minhtien.watermusic.Model.MessageWM;
 import com.example.minhtien.watermusic.Model.Song;
 import com.google.gson.Gson;
@@ -54,11 +55,13 @@ public class ControllerFragment extends Fragment {
     private ImageButton btnNext;
     private ImageButton btnSync;
     private ImageButton btnVolume;
-    static BluetoothDevice device;
 
-    FragmentManager fragmentManager;
-    FragmentTransaction fragmentTransaction;
-    private SpectrumFragment spectrumFragment;
+    private RecyclerView mRecyclerView;
+    private SongAdapter mAdapter;
+    private RecyclerView.LayoutManager mLayoutManager;
+
+    static BluetoothDevice device;
+    private ArrayList<Song> listSong;
 
     // TODO: Rename and change types of parameters
     private String mParam1;
@@ -180,12 +183,17 @@ public class ControllerFragment extends Fragment {
         tvName = (TextView) view.findViewById(R.id.tv_name_song);
         tvName.setSelected(true);
 
-        fragmentManager = getActivity().getSupportFragmentManager();
-        fragmentTransaction = fragmentManager.beginTransaction();
-        spectrumFragment = new SpectrumFragment();
+        listSong = new ArrayList<Song>();
 
-        fragmentTransaction.replace(R.id.fragment_spectrum,spectrumFragment);
-        fragmentTransaction.commit();
+        mRecyclerView = view.findViewById(R.id.rv_list_song);
+        mRecyclerView.setHasFixedSize(true);
+
+        mLayoutManager = new LinearLayoutManager(getContext());
+        mRecyclerView.setLayoutManager(mLayoutManager);
+
+        mAdapter = new SongAdapter(listSong);
+
+        mRecyclerView.setAdapter(mAdapter);
     }
 
     public void initEvent(){
@@ -217,6 +225,7 @@ public class ControllerFragment extends Fragment {
         btnSync.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                listSong.clear();
                 ManagerConnection.getInstance(device).send("C:syn");
                 Animation rotation = AnimationUtils.loadAnimation(getContext(),R.anim.rotation);
                 rotation.setRepeatCount(Animation.RELATIVE_TO_SELF);
@@ -259,6 +268,7 @@ public class ControllerFragment extends Fragment {
     }
 
     void getResponse(String message){
+        Log.d("test", "getResponse: " + message);
         MessageWM messageWM = null;
         try {
             messageWM = new Gson().fromJson(message,MessageWM.class);
@@ -271,11 +281,22 @@ public class ControllerFragment extends Fragment {
             return;
         }
 
+
+
         switch (messageWM.getType()){
             case "Name":
                 try{
                     Song song = new Gson().fromJson(messageWM.getMessage(),Song.class);
                     tvName.setText(song.getName().replace(".wav",""));
+                    int index = -1;
+                    for (int i = 0; i < listSong.size(); i++){
+                        if (song.getName().equals(listSong.get(i).getName())){
+                            index = i;
+                            break;
+                        };
+                    }
+                    mAdapter.setIndex(index);
+                    mAdapter.notifyDataSetChanged();
                 }catch (Exception e){
                     e.printStackTrace();
                 }
@@ -293,9 +314,14 @@ public class ControllerFragment extends Fragment {
                 }
                 break;
             case "Sync":
-                    if (messageWM.getMessage().equals("sync completed"))
+                if (messageWM.getMessage().equals("sync completed"))
                     btnSync.clearAnimation();
-                    break;
+
+                break;
+            case "List":
+                listSong.add(new Song(messageWM.getMessage()));
+                mAdapter.notifyDataSetChanged();
+                break;
                 default:
                     Log.d("error", "getResponse: " + messageWM.getMessage());
                     Toast.makeText(getContext(), messageWM.getMessage(), Toast.LENGTH_LONG).show();

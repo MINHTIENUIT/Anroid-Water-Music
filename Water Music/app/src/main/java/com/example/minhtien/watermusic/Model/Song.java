@@ -3,6 +3,10 @@ package com.example.minhtien.watermusic.Model;
 public class Song{
 	private String name;
 
+	public Song(String name) {
+		this.name = name;
+	}
+
 	public void setName(String name){
 		this.name = name;
 	}

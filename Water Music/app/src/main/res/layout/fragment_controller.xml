@@ -7,11 +7,12 @@
     android:background="@color/bgr_bar"
     tools:context="com.example.minhtien.watermusic.MainActivity">
 
-    <FrameLayout
-        android:id="@+id/fragment_spectrum"
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/rv_list_song"
         android:layout_width="match_parent"
-        android:layout_height="350dp"
-        android:layout_above="@+id/tv_name_song"/>
+        android:layout_height="match_parent"
+        android:layout_above="@+id/tv_name_song">
+    </android.support.v7.widget.RecyclerView>
 
     <TextView
         android:id="@+id/tv_name_song"
