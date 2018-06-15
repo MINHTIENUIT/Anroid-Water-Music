@@ -1,4 +1,4 @@
-package com.example.minhtien.watermusic;
+package com.example.minhtien.watermusic.Fragment;
 
 import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
@@ -16,17 +16,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.minhtien.watermusic.Connection.ManagerConnection;
-import com.example.minhtien.watermusic.Model.MessageWM;
-import com.example.minhtien.watermusic.Model.Song;
-import com.google.gson.Gson;
-
+import com.example.minhtien.watermusic.R;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -52,8 +46,6 @@ public class ControllerFragment extends Fragment {
     private ImageButton btnPrev;
     private ImageButton btnPause;
     private ImageButton btnNext;
-    private ImageButton btnSync;
-    private ImageButton btnVolume;
     static BluetoothDevice device;
 
     FragmentManager fragmentManager;
@@ -63,7 +55,6 @@ public class ControllerFragment extends Fragment {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
-    private String statePlaying = "PLAY";
 
     private OnFragmentInteractionListener mListener;
 
@@ -118,17 +109,33 @@ public class ControllerFragment extends Fragment {
                 if (msg.what == 0){
                     String readMessage = null;
                     try{
-                        readMessage = new String((byte[]) msg.obj,"UTF-8").trim();
+                        readMessage = new String((byte[]) msg.obj,"UTF-8");
+                        StringBuffer buffer = new StringBuffer();
+                        buffer.append(Character.MIN_VALUE);
+                        readMessage = readMessage.replaceAll("[\uFEFF-\uFFFF]", "");
+                        Log.d("test", "handleMessage: "+readMessage);
                     }catch (UnsupportedEncodingException e){
                         e.printStackTrace();
                     }
-                    getResponse(readMessage);
+                    String[] strings = readMessage.split(":");
 
+                    if (strings.length != 0){
+
+                        switch (strings[0]){
+                            case "Name":
+                                tvName.setText(strings[1]);
+                                break;
+                            case "SP":
+                                spectrumFragment.setSpectrum(arraySpectrum(strings));
+                                break;
+                        }
+                    }
                 }
             }
         };
         ManagerConnection.getInstance(device).setHandler(handler);
         ManagerConnection.getInstance(device).start();
+
         initEvent();
     }
 
@@ -175,10 +182,7 @@ public class ControllerFragment extends Fragment {
         btnNext = (ImageButton) view.findViewById(R.id.btn_next);
         btnPause = (ImageButton) view.findViewById(R.id.btn_pause);
         btnPrev = (ImageButton) view.findViewById(R.id.btn_prev);
-        btnSync = view.findViewById(R.id.btn_sync);
-        btnVolume = view.findViewById(R.id.btn_volume);
         tvName = (TextView) view.findViewById(R.id.tv_name_song);
-        tvName.setSelected(true);
 
         fragmentManager = getActivity().getSupportFragmentManager();
         fragmentTransaction = fragmentManager.beginTransaction();
@@ -192,18 +196,14 @@ public class ControllerFragment extends Fragment {
         btnPrev.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ManagerConnection.getInstance(device).send("C:prv");
+                ManagerConnection.getInstance(device).send("C:res");
             }
         });
 
         btnPause.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (statePlaying.equals("PLAY"))
-                    ManagerConnection.getInstance(device).send("C:pse");
-                else{
-                    ManagerConnection.getInstance(device).send("C:res");
-                }
+                ManagerConnection.getInstance(device).send("C:pse");
             }
         });
 
@@ -211,24 +211,6 @@ public class ControllerFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 ManagerConnection.getInstance(device).send("C:nxt");
-            }
-        });
-
-        btnSync.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ManagerConnection.getInstance(device).send("C:syn");
-                Animation rotation = AnimationUtils.loadAnimation(getContext(),R.anim.rotation);
-                rotation.setRepeatCount(Animation.RELATIVE_TO_SELF);
-
-                btnSync.startAnimation(rotation);
-            }
-        });
-
-        btnVolume.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ManagerConnection.getInstance(device).send("C:vol");
             }
         });
     }
@@ -256,51 +238,5 @@ public class ControllerFragment extends Fragment {
             }
         }
         return integers;
-    }
-
-    void getResponse(String message){
-        MessageWM messageWM = null;
-        try {
-            messageWM = new Gson().fromJson(message,MessageWM.class);
-        }catch (Exception e){
-            e.printStackTrace();
-            Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
-        }
-
-        if (messageWM == null){
-            return;
-        }
-
-        switch (messageWM.getType()){
-            case "Name":
-                try{
-                    Song song = new Gson().fromJson(messageWM.getMessage(),Song.class);
-                    tvName.setText(song.getName().replace(".wav",""));
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-                break;
-            case "Spectrum":
-                break;
-            case "Control":
-                if (messageWM.getMessage().equals("pause")){
-                    btnPause.setImageResource(R.drawable.ic_play);
-                    statePlaying = "PAUSE";
-                }
-                if (messageWM.getMessage().equals("resume")){
-                    btnPause.setImageResource(R.drawable.ic_pause_black_24dp);
-                    statePlaying = "PLAY";
-                }
-                break;
-            case "Sync":
-                    if (messageWM.getMessage().equals("sync completed"))
-                    btnSync.clearAnimation();
-                    break;
-                default:
-                    Log.d("error", "getResponse: " + messageWM.getMessage());
-                    Toast.makeText(getContext(), messageWM.getMessage(), Toast.LENGTH_LONG).show();
-                    break;
-        }
-
     }
 }

@@ -31,6 +31,17 @@
         android:layout_height="wrap_content"
         android:background="@drawable/border_rectangle"
         android:layout_alignParentBottom="true">
+
+        <ImageButton
+            android:id="@+id/btn_sync"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/round_button"
+            android:layout_margin="10dp"
+            android:layout_centerVertical="true"
+            android:layout_toStartOf="@+id/btn_prev"
+            android:src="@drawable/ic_sync_black_24dp"/>
+
         <ImageButton
             android:id="@+id/btn_prev"
             android:layout_width="50dp"
@@ -57,5 +68,14 @@
             android:layout_toEndOf="@id/btn_pause"
             android:src="@drawable/ic_arrow_right"
             android:layout_centerVertical="true"/>
+        <ImageButton
+            android:id="@+id/btn_volume"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/round_button"
+            android:layout_margin="10dp"
+            android:layout_centerVertical="true"
+            android:layout_toEndOf="@id/btn_next"
+            android:src="@drawable/ic_volume_up_black_24dp"/>
     </RelativeLayout>
 </RelativeLayout>
